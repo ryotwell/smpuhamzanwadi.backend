@@ -139,16 +139,16 @@ func (u *userAPI) Login(c *gin.Context) {
 	}
 
 	// Simpan token ke cookie
-	c.SetCookie("session_token", *token, int(time.Hour.Seconds()), "/", "localhost", false, true)
+	c.SetCookie("session_token", *token, int(time.Hour.Seconds()), "/", "", false, true)
 
 	c.JSON(http.StatusOK, model.SuccessResponse{
 		Success: true,
 		Status:  http.StatusOK,
 		Message: "Login successful",
 		Data: gin.H{
-			"user_id": userID,
-			"email":   req.Email,
-			"fullname":   req.Fullname,
+			"user_id":  userID,
+			"email":    req.Email,
+			"fullname": req.Fullname,
 		},
 	})
 }
@@ -172,6 +172,6 @@ func (u *userAPI) GetUserTaskCategory(c *gin.Context) {
 		Success: true,
 		Status:  http.StatusOK,
 		Message: "GetUserTaskCategory not implemented yet",
-		Data: gin.H{},
+		Data:    gin.H{},
 	})
 }
