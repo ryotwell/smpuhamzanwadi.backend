@@ -156,7 +156,15 @@ func (u *userAPI) Login(c *gin.Context) {
 // ✅ LOGOUT
 func (u *userAPI) Logout(c *gin.Context) {
 	// Hapus cookie dengan mengatur maxAge -1
-	c.SetCookie("session_token", "", -1, "/", "localhost", false, true)
+	c.SetCookie(
+		"session_token",
+		"",
+		-1, // ❗ waktu negatif artinya hapus cookie
+		"/",
+		"projectsdu-production.up.railway.app", // atau pakai domain khusus misalnya "projectsdu-production.up.railway.app"
+		true,                                   // secure = true di production (pakai HTTPS)
+		true,                                   // httpOnly
+	)
 
 	c.JSON(http.StatusOK, model.SuccessResponse{
 		Success: true,
