@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService interface {
@@ -31,9 +32,13 @@ func (s *userService) Login(user model.User) (token *string, userID int, err err
 		return nil, 0, errors.New("user not found")
 	}
 
-	if dbUser.Email != user.Email || dbUser.Password != user.Password {
+	if err := bcrypt.CompareHashAndPassword([]byte(dbUser.Password), []byte(user.Password)); err != nil {
 		return nil, 0, errors.New("wrong email or password")
 	}
+
+	// if dbUser.Email != user.Email || dbUser.Password != user.Password {
+	// 	return nil, 0, errors.New("wrong email or password")
+	// }
 
 	expirationTime := time.Now().Add(10 * time.Minute)
 	claims := model.Claims{
@@ -52,7 +57,6 @@ func (s *userService) Login(user model.User) (token *string, userID int, err err
 	return &tokenJwtString, dbUser.ID, nil
 }
 
-
 func (s *userService) Register(user model.User) error {
 	dbUser, _ := s.userRepository.CheckAvail(user)
 	// if err != nil {
@@ -70,7 +74,6 @@ func (s *userService) Register(user model.User) error {
 
 	return nil
 }
-
 
 // func (s *userService) GetUser() (model.User, error)
 

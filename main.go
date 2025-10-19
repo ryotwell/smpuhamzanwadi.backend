@@ -2,9 +2,8 @@ package main
 
 import (
 	"fmt"
-	"os"
 
-	// "os"
+	"os"
 	"time"
 
 	"project_sdu/api"
@@ -14,6 +13,7 @@ import (
 	repo "project_sdu/repository"
 	"project_sdu/service"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 
@@ -40,6 +40,17 @@ func main() {
 		)
 	}))
 	router.Use(gin.Recovery())
+
+	// --- ✅ CORS SETUP HERE ---
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"}, // Ganti dengan origin frontend kamu, misal "https://project-frontend.vercel.app"
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
+	// --- END CORS ---
 
 	// // Koneksi ke DB Postgres
 	// dbCredential := model.Credential{

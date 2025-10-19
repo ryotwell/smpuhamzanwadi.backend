@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserAPI interface {
@@ -62,10 +63,24 @@ func (u *userAPI) Register(c *gin.Context) {
 		return
 	}
 
+	// 🔒 Hash password sebelum disimpan
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.ErrorResponse{
+			Success: false,
+			Status:  http.StatusInternalServerError,
+			Message: "Failed to hash password",
+			Errors: map[string]string{
+				"bcrypt": err.Error(),
+			},
+		})
+		return
+	}
+
 	user := model.User{
 		Fullname: req.Fullname,
 		Email:    req.Email,
-		Password: req.Password,
+		Password: string(hashedPassword),
 	}
 
 	if err := u.userService.Register(user); err != nil {
@@ -91,7 +106,7 @@ func (u *userAPI) Register(c *gin.Context) {
 	})
 }
 
-// ✅ LOGIN
+// LOGIN
 func (u *userAPI) Login(c *gin.Context) {
 	var req model.User
 
@@ -153,17 +168,17 @@ func (u *userAPI) Login(c *gin.Context) {
 	})
 }
 
-// ✅ LOGOUT
+// LOGOUT
 func (u *userAPI) Logout(c *gin.Context) {
-	// Hapus cookie dengan mengatur maxAge -1
+
 	c.SetCookie(
 		"session_token",
 		"",
-		-1, // ❗ waktu negatif artinya hapus cookie
+		-1,
 		"/",
-		"projectsdu-production.up.railway.app", // atau pakai domain khusus misalnya "projectsdu-production.up.railway.app"
-		true,                                   // secure = true di production (pakai HTTPS)
-		true,                                   // httpOnly
+		"",
+		true,
+		true,
 	)
 
 	c.JSON(http.StatusOK, model.SuccessResponse{
