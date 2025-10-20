@@ -161,9 +161,9 @@ func (u *userAPI) Login(c *gin.Context) {
 		Status:  http.StatusOK,
 		Message: "Login successful",
 		Data: gin.H{
-			"user_id":  userID,
-			"email":    req.Email,
-			"fullname": req.Fullname,
+			"user_id": userID,
+			"email":   req.Email,
+			"token":   token,
 		},
 	})
 }
