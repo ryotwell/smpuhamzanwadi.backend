@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"os"
+	// "os"
 	"time"
 
 	"project_sdu/api"
@@ -41,9 +41,9 @@ func main() {
 	}))
 	router.Use(gin.Recovery())
 
-	// --- ✅ CORS SETUP HERE ---
+	// --- CORS SETUP HERE ---
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"*"}, // Ganti dengan origin frontend kamu, misal "https://project-frontend.vercel.app"
+		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -52,62 +52,62 @@ func main() {
 	}))
 	// --- END CORS ---
 
-	// // Koneksi ke DB Postgres
-	// dbCredential := model.Credential{
-	// 	Host:         "localhost",
-	// 	Username:     "postgres",
-	// 	Password:     "farid123",
-	// 	DatabaseName: "tes_sdu",
-	// 	Port:         5432,
-	// 	Schema:       "public",
-	// }
-
-	// database := db.NewDB()
-	// conn, err := database.Connect(&dbCredential)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// // Migrasi tabel
-	// conn.AutoMigrate(&model.User{}, &model.Student{})
-
-	// // Daftarkan semua route dan handler
-	// router = RunServer(router, conn)
-
-	// fmt.Println("✅ Server is running on port 8080")
-	// if err := router.Run(":8080"); err != nil {
-	// 	panic(err)
-	// }
-
-	// Ambil DATABASE_URL dari environment (Railway akan menyediakannya otomatis)
-	databaseURL := os.Getenv("DATABASE_URL")
-	if databaseURL == "" {
-		panic("DATABASE_URL tidak ditemukan. Pastikan environment variable sudah diatur di Railway.")
+	// Koneksi ke DB Postgres
+	dbCredential := model.Credential{
+		Host:         "localhost",
+		Username:     "postgres",
+		Password:     "farid123",
+		DatabaseName: "tes_sdu",
+		Port:         5432,
+		Schema:       "public",
 	}
 
-	// Koneksi ke DB
 	database := db.NewDB()
-	conn, err := database.ConnectURL(databaseURL)
+	conn, err := database.Connect(&dbCredential)
 	if err != nil {
 		panic(err)
 	}
 
-	// Migrasi tabel (opsional, tergantung kebutuhan)
+	// Migrasi tabel
 	conn.AutoMigrate(&model.User{}, &model.Student{})
 
 	// Daftarkan semua route dan handler
 	router = RunServer(router, conn)
 
-	// Ambil PORT dari Railway
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080" // fallback jika dijalankan lokal
-	}
-
-	fmt.Printf("✅ Server is running on port %s\n", port)
-	if err := router.Run(":" + port); err != nil {
+	fmt.Println("✅ Server is running on port 8080")
+	if err := router.Run(":8080"); err != nil {
 		panic(err)
 	}
+
+	// // Ambil DATABASE_URL
+	// databaseURL := os.Getenv("DATABASE_URL")
+	// if databaseURL == "" {
+	// 	panic("DATABASE_URL tidak ditemukan. Pastikan environment variable sudah diatur di Railway.")
+	// }
+
+	// // Koneksi ke DB
+	// database := db.NewDB()
+	// conn, err := database.ConnectURL(databaseURL)
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// // Migrasi tabel (opsional, tergantung kebutuhan)
+	// conn.AutoMigrate(&model.User{}, &model.Student{})
+
+	// // Daftarkan semua route dan handler
+	// router = RunServer(router, conn)
+
+	// // Ambil PORT dari Railway
+	// port := os.Getenv("PORT")
+	// if port == "" {
+	// 	port = "8080" // fallback jika dijalankan lokal
+	// }
+
+	// fmt.Printf("✅ Server is running on port %s\n", port)
+	// if err := router.Run(":" + port); err != nil {
+	// 	panic(err)
+	// }
 
 }
 
@@ -142,7 +142,7 @@ func RunServer(r *gin.Engine, conn interface{}) *gin.Engine {
 		user.POST("/logout", apiHandler.UserAPIHandler.Logout)
 
 		user.Use(middleware.Auth())
-		user.GET("/tasks", apiHandler.UserAPIHandler.GetUserTaskCategory)
+		user.GET("/profile", apiHandler.UserAPIHandler.GetUserProfile)
 	}
 
 	// Student routes

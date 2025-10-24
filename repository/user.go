@@ -9,6 +9,7 @@ import (
 type UserRepository interface {
 	Add(user model.User) error
 	CheckAvail(user model.User) (model.User, error)
+	GetUserByID(id int) (model.User, error)
 }
 
 type userRepository struct {
@@ -33,4 +34,14 @@ func (u *userRepository) CheckAvail(user model.User) (model.User, error) {
 	}
 
 	return userExist, nil // TODO: replace this
+}
+
+func (u *userRepository) GetUserByID(id int) (model.User, error) {
+	var user model.User
+
+	if err := u.db.Where("id = ?", id).First(&user).Error; err != nil {
+		return model.User{}, err
+	}
+
+	return user, nil // TODO: replace this
 }

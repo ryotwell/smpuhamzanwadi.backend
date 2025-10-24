@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -14,7 +15,8 @@ type UserAPI interface {
 	Register(c *gin.Context)
 	Login(c *gin.Context)
 	Logout(c *gin.Context)
-	GetUserTaskCategory(c *gin.Context)
+	GetUserProfile(c *gin.Context)
+	// GetUserTaskCategory(c *gin.Context)
 }
 
 type userAPI struct {
@@ -25,7 +27,7 @@ func NewUserAPI(userService service.UserService) *userAPI {
 	return &userAPI{userService}
 }
 
-// ✅ REGISTER
+// REGISTER
 func (u *userAPI) Register(c *gin.Context) {
 	var req model.UserRegister
 
@@ -63,7 +65,7 @@ func (u *userAPI) Register(c *gin.Context) {
 		return
 	}
 
-	// 🔒 Hash password sebelum disimpan
+	// Hash password sebelum disimpan
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, model.ErrorResponse{
@@ -188,13 +190,56 @@ func (u *userAPI) Logout(c *gin.Context) {
 	})
 }
 
-// ✅ GET USER TASK CATEGORY (contoh)
-func (u *userAPI) GetUserTaskCategory(c *gin.Context) {
-	// Contoh response (belum implementasi)
-	c.JSON(http.StatusOK, model.SuccessResponse{
+// GET USER PROFILE
+func (u *userAPI) GetUserProfile(c *gin.Context) {
+	cookie, err := c.Cookie("session_token")
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, model.ErrorResponse{
+			Success: false,
+			Status:  http.StatusUnauthorized,
+			Message: "Unauthorized: Token missing",
+		})
+		return
+	}
+
+	claims := &model.Claims{}
+	token, err := jwt.ParseWithClaims(cookie, claims, func(t *jwt.Token) (interface{}, error) {
+		return model.JwtKey, nil
+	})
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "bad request"})
+		}
+		return
+	}
+
+	if !token.Valid {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		c.Abort()
+		return
+	}
+
+	user, err := u.userService.GetUserByID(claims.UserID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.ErrorResponse{
+			Success: false,
+			Status:  http.StatusInternalServerError,
+			Message: "Failed to get user profile",
+			Errors:  map[string]string{"user": err.Error()},
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, model.SuccessResponse{
 		Success: true,
 		Status:  http.StatusOK,
-		Message: "GetUserTaskCategory not implemented yet",
-		Data:    gin.H{},
+		Message: "Retrived user profile succesfully",
+		Data: gin.H{
+			"user_id": claims.UserID,
+			"email":   user.Email,
+		},
 	})
+
 }

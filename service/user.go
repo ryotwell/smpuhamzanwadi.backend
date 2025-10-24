@@ -13,9 +13,11 @@ import (
 type UserService interface {
 	Login(user model.User) (token *string, userID int, err error)
 	Register(user model.User) error
+	GetUserByID(id int) (model.User, error)
 
-	CheckPassLength(pass string) bool
-	CheckPassAlphabet(pass string) bool
+	// CheckPassLength(pass string) bool
+	// CheckPassAlphabet(pass string) bool
+	
 }
 
 type userService struct {
@@ -77,19 +79,28 @@ func (s *userService) Register(user model.User) error {
 
 // func (s *userService) GetUser() (model.User, error)
 
-func (s *userService) CheckPassLength(pass string) bool {
-	if len(pass) <= 5 {
-		return true
+// func (s *userService) CheckPassLength(pass string) bool {
+// 	if len(pass) <= 5 {
+// 		return true
+// 	}
+
+// 	return false
+// }
+
+// func (s *userService) CheckPassAlphabet(pass string) bool {
+// 	for _, charVariable := range pass {
+// 		if (charVariable < 'a' || charVariable > 'z') && (charVariable < 'A' || charVariable > 'Z') {
+// 			return false
+// 		}
+// 	}
+// 	return true
+// }
+
+func (s *userService) GetUserByID(id int) (model.User, error) {
+	user, err := s.userRepository.GetUserByID(id)
+	if err != nil {
+		return model.User{}, err
 	}
 
-	return false
-}
-
-func (s *userService) CheckPassAlphabet(pass string) bool {
-	for _, charVariable := range pass {
-		if (charVariable < 'a' || charVariable > 'z') && (charVariable < 'A' || charVariable > 'Z') {
-			return false
-		}
-	}
-	return true
+	return user, nil
 }
