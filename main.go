@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-
+	"log"
 	"os"
 	"time"
 
@@ -15,6 +15,7 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 
 	// "gorm.io/driver/postgres"
@@ -27,6 +28,10 @@ type APIHandler struct {
 }
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("Error loading .env file")
+	}
 	gin.SetMode(gin.ReleaseMode)
 
 	router := gin.New()
