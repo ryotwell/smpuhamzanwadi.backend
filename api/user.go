@@ -240,6 +240,7 @@ func (u *userAPI) GetUserProfile(c *gin.Context) {
 		Data: gin.H{
 			"user_id": claims.UserID,
 			"email":   user.Email,
+			"fullname":   user.Fullname,
 		},
 	})
 
