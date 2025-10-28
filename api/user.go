@@ -156,7 +156,7 @@ func (u *userAPI) Login(c *gin.Context) {
 	}
 
 	// Simpan token ke cookie
-	c.SetCookie("session_token", *token, int(time.Hour.Seconds()), "/", "", false, true)
+	c.SetCookie("session_token", *token, int((3 * time.Hour).Seconds()), "/", "", false, true)
 
 	c.JSON(http.StatusOK, model.SuccessResponse{
 		Success: true,
