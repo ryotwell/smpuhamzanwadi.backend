@@ -25,6 +25,7 @@ import (
 type APIHandler struct {
 	UserAPIHandler    api.UserAPI
 	StudentAPIHandler api.StudentAPI
+	PostAPIHandler    api.PostAPI
 }
 
 func main() {
@@ -97,8 +98,13 @@ func main() {
 		panic(err)
 	}
 
+	// Buat ENUM type untuk PostCategory jika belum ada
+	if err := database.CreatePostCategoryEnum(conn); err != nil {
+		panic(fmt.Errorf("failed to create post_category enum: %w", err))
+	}
+
 	// Migrasi tabel (opsional, tergantung kebutuhan)
-	conn.AutoMigrate(&model.User{}, &model.Student{})
+	conn.AutoMigrate(&model.User{}, &model.Student{}, &model.Post{})
 
 	// Daftarkan semua route dan handler
 	router = RunServer(router, conn)
@@ -123,18 +129,22 @@ func RunServer(r *gin.Engine, conn interface{}) *gin.Engine {
 	// Inisialisasi Repository (pakai GORM)
 	userRepo := repo.NewUserRepo(dbConn)
 	studentRepo := repo.NewStudentRepo(dbConn)
+	postRepo := repo.NewPostRepo(dbConn)
 
 	// Inisialisasi Service
 	userService := service.NewUserService(userRepo)
 	studentService := service.NewStudentService(studentRepo)
+	postService := service.NewPostService(postRepo)
 
 	// Inisialisasi API Handler
 	userAPIHandler := api.NewUserAPI(userService)
 	studentAPIHandler := api.NewStudentAPI(studentService)
+	postAPIHandler := api.NewPostAPI(postService)
 
 	apiHandler := APIHandler{
 		UserAPIHandler:    userAPIHandler,
 		StudentAPIHandler: studentAPIHandler,
+		PostAPIHandler:    postAPIHandler,
 	}
 
 	// ROUTES
@@ -160,6 +170,13 @@ func RunServer(r *gin.Engine, conn interface{}) *gin.Engine {
 		students.PUT("/:id", apiHandler.StudentAPIHandler.UpdateStudent)
 		students.DELETE("/:id", apiHandler.StudentAPIHandler.DeleteStudent)
 		students.GET("/class", apiHandler.StudentAPIHandler.FetchStudentWithClass)
+	}
+
+	// Post routes
+	posts := r.Group("/posts")
+	{
+		posts.Use(middleware.Auth())
+		posts.POST("", apiHandler.PostAPIHandler.CreatePost)
 	}
 
 	return r

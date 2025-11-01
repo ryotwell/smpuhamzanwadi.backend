@@ -82,3 +82,25 @@ type ErrorResponse struct {
 	Message string            `json:"message"`
 	Errors  map[string]string `json:"errors,omitempty"`
 }
+
+type PostCategory string
+
+const (
+	BERITA    PostCategory = "BERITA"
+	ARTIKEL   PostCategory = "ARTIKEL"
+	INFORMASI PostCategory = "INFORMASI"
+)
+
+type Post struct {
+	ID          int           `gorm:"primaryKey;autoIncrement" json:"id"`
+	Title       string        `gorm:"type:varchar(255)" json:"title"`
+	Slug        string        `gorm:"type:varchar(255);unique" json:"slug"`
+	Thumbnail   *string       `gorm:"type:varchar(255)" json:"thumbnail"`
+	Description *string       `gorm:"type:varchar(255)" json:"description"`
+	Content     string        `gorm:"type:text" json:"content"`
+	Published   bool          `gorm:"default:false" json:"published"`
+	PublishedAt *time.Time    `json:"published_at"`
+	CreatedAt   time.Time     `json:"created_at"`
+	UpdatedAt   time.Time     `json:"updated_at"`
+	Category    *PostCategory `gorm:"type:post_category" json:"category"`
+}

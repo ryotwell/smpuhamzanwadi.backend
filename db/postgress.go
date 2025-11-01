@@ -47,3 +47,7 @@ func (p *Postgres) Reset(db *gorm.DB, table string) error {
 		return nil
 	})
 }
+
+func (p *Postgres) CreatePostCategoryEnum(db *gorm.DB) error {
+	return db.Exec("DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'post_category') THEN CREATE TYPE post_category AS ENUM ('BERITA', 'ARTIKEL', 'INFORMASI'); END IF; END $$;").Error
+}
