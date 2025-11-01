@@ -1,7 +1,7 @@
 package api
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
 	"project_sdu/model"
 	"project_sdu/service"
@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 )
 
 type PostAPI interface {
@@ -25,11 +26,11 @@ func NewPostAPI(postService service.PostService) *postAPI {
 }
 
 type PostRequest struct {
-	Title       string              `json:"title" binding:"required"`
-	Content     string              `json:"content" binding:"required"`
+	Title       string              `json:"title" binding:"required,min=10"`
+	Content     string              `json:"content" binding:"required,min=20"`
 	Thumbnail   string              `json:"thumbnail"`
 	Description *string             `json:"description"`
-	Category    *model.PostCategory `json:"category"`
+	Category    *model.PostCategory `json:"category" binding:"oneof=BERITA ARTIKEL INFORMASI"`
 	Published   bool                `json:"published"`
 	PublishedAt *string             `json:"publishedAt"`
 }
@@ -48,7 +49,20 @@ func (api *postAPI) CreatePost(c *gin.Context) {
 	var req PostRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		fmt.Printf("Failed to bind JSON in CreatePost: %v\n", err)
+		var ve validator.ValidationErrors
+		if errors.As(err, &ve) {
+			errorMessages := make(map[string]string)
+			for _, e := range ve {
+				errorMessages[e.Field()] = e.ActualTag()
+			}
+			c.JSON(http.StatusBadRequest, model.ErrorResponse{
+				Success: false,
+				Status:  http.StatusBadRequest,
+				Message: "Validation failed",
+				Errors:  errorMessages,
+			})
+			return
+		}
 		c.JSON(http.StatusBadRequest, model.ErrorResponse{
 			Success: false,
 			Status:  http.StatusBadRequest,
